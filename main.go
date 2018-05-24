@@ -11,6 +11,38 @@ import (
 
 const port = ":8080"
 
+type Routine struct {
+	RoutineId     int
+	Title         string
+	TotalDuration int
+	Character     string
+	CreatorTag    string
+	CreatorId     int
+	Creation_date string
+	Popularity    int
+	Drills        Drills
+}
+type Routines []Routine
+
+type Drill struct {
+	DrillTitle string
+	Duration   int
+}
+type Drills []Drill
+
+type Library struct {
+	LibraryId int
+	UserId    int
+	Routines  Routines
+}
+
+type User struct {
+	Tag   string
+	Email string
+	Bio   string
+	Main  string
+}
+
 func main() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", Index)
@@ -40,5 +72,6 @@ func HandleGetLibrary(w http.ResponseWriter, r *http.Request) {
 func HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userId := vars["userId"]
+
 	fmt.Fprintf(w, "{ User with id: %q }", userId)
 }
