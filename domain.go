@@ -28,8 +28,9 @@ type Library struct {
 }
 
 type User struct {
-	Tag   string `json:"tag"`
-	Email string `json:"email"`
-	Bio   string `json:"bio"`
-	Main  string `json:"main"`
+	UserId int    `json:"user_id"`
+	Tag    string `json:"tag"`
+	Email  string `json:"email"`
+	Bio    string `json:"bio"`
+	Main   string `json:"main"`
 }

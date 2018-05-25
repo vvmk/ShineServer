@@ -8,6 +8,8 @@ import (
 var currentId int
 
 var routines Routines
+var libraries []Library
+var users []User
 
 func init() {
 	RepoCreateRoutine(Routine{
@@ -83,6 +85,19 @@ func init() {
 			},
 		},
 	})
+
+	RepoCreateLibrary(Library{
+		UserId:    1,
+		LibraryId: 1,
+		Routines:  RepoGetAllRoutines(),
+	})
+
+	RepoCreateUser(User{
+		Tag:   "vvmk",
+		Email: "v@complexaesthetic.com",
+		Bio:   "tries really hard!",
+		Main:  "Falco",
+	})
 }
 
 func RepoFindRoutine(id int) Routine {
@@ -114,4 +129,34 @@ func RepoDeleteRoutine(id int) error {
 		}
 	}
 	return fmt.Errorf("Could not find Routine with id of %d to delete", id)
+}
+
+func RepoCreateLibrary(l Library) Library {
+	libraries = append(libraries, l)
+	return l
+}
+
+func RepoFindLibrary(id int) Library {
+	for _, l := range libraries {
+		if l.LibraryId == id {
+			return l
+		}
+	}
+
+	return Library{}
+}
+
+func RepoCreateUser(u User) User {
+	users = append(users, u)
+	return u
+}
+
+func RepoFindUser(id int) User {
+	for _, u := range users {
+		if u.UserId == id {
+			return u
+		}
+	}
+
+	return User{}
 }
