@@ -11,7 +11,7 @@ func Logger(inner http.Handler, name string) http.Handler {
 
 		start := time.Now()
 
-		inner.ServeHttp(w, r)
+		inner.ServeHTTP(w, r)
 
 		log.Printf("%s\t%s\t%s\t%s",
 			r.Method,
