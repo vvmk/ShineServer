@@ -93,10 +93,11 @@ func init() {
 	})
 
 	RepoCreateUser(User{
-		Tag:   "vvmk",
-		Email: "v@complexaesthetic.com",
-		Bio:   "tries really hard!",
-		Main:  "Falco",
+		UserId: 1,
+		Tag:    "vvmk",
+		Email:  "v@complexaesthetic.com",
+		Bio:    "tries really hard!",
+		Main:   "Falco",
 	})
 }
 
