@@ -18,6 +18,7 @@ func init() {
 		TotalDuration: 30,
 		Character:     "Falco",
 		CreatorId:     1,
+		CreatorTag:    "vvmk",
 		CreationDate:  time.Now(),
 		Popularity:    9,
 		Drills: Drills{
@@ -41,6 +42,7 @@ func init() {
 		TotalDuration: 50,
 		Character:     "Fox",
 		CreatorId:     1,
+		CreatorTag:    "vvmk",
 		CreationDate:  time.Now(),
 		Popularity:    4,
 		Drills: Drills{
@@ -68,6 +70,7 @@ func init() {
 		TotalDuration: 50,
 		Character:     "Captain Falcon",
 		CreatorId:     1,
+		CreatorTag:    "vvmk",
 		CreationDate:  time.Now(),
 		Popularity:    8,
 		Drills: Drills{
