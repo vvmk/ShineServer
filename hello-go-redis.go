@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -59,8 +60,14 @@ func main() {
 			},
 		}
 
+		// play with json.Marshal
+		routineJson, err := json.Marshal(r)
+		if err != nil {
+			panic(err)
+		}
+
 		//set
-		conn.Do("SET", key, r)
+		conn.Do("SET", key, string(routineJson))
 	}
 
 	// build key set
@@ -72,7 +79,7 @@ func main() {
 
 	//get
 	//reply, err := redis.Values(conn.Do("MGET", keys...))
-	reply, err := redis.String(conn.Do("GET", "routine:8"))
+	reply, err := redis.String(conn.Do("GET", "routine:5"))
 	if err != nil {
 		fmt.Println("key not found")
 	}
