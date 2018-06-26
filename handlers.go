@@ -16,6 +16,10 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "ping, %q", html.EscapeString(r.URL.Path))
 }
 
+func Login(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func GetRoutine(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 

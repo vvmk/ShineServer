@@ -21,6 +21,12 @@ var routes = Routes{
 		Index,
 	},
 	Route{
+		"Login",
+		"POST",
+		"/login",
+		Login,
+	},
+	Route{
 		"Library",
 		"GET",
 		"/ssrroutine/library/{userId}",
