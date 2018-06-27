@@ -9,6 +9,12 @@ import (
 
 const port = ":8080"
 
+var globalSessions *session.Manager
+
+func init() {
+	globalSessions = NewManager("memory", "gosessionid", 3600)
+}
+
 func main() {
 	router := NewRouter()
 
