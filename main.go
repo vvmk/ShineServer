@@ -5,14 +5,15 @@ import (
 	"net/http"
 
 	"github.com/gorilla/handlers"
+	"github.com/vvmk/bounce/session"
 )
 
 const port = ":8080"
 
-var globalSessions *Manager
+var globalSessions *session.Manager
 
 func init() {
-	globalSessions = NewManager("memory", "gosessionid", 3600)
+	globalSessions, _ = session.NewManager("memory", "gosessionid", 3600)
 	go globalSessions.GC()
 }
 
