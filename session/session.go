@@ -25,7 +25,7 @@ type Manager struct {
 type Provider interface {
 	SessionInit(sid string) (Session, error)
 	SessionRead(sid string) (Session, error)
-	SessionDestroy(sid string) (Session, error)
+	SessionDestroy(sid string) error
 	SessionGC(maxLife int64)
 }
 
@@ -34,7 +34,7 @@ type Session interface {
 	Set(key, value interface{}) error
 	Get(key interface{}) interface{}
 	Delete(key interface{}) error
-	SessionID() string
+	SessionId() string
 }
 
 // create a map of provider names to Providers

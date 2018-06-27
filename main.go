@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/handlers"
+	_ "github.com/vvmk/bounce/memory"
 	"github.com/vvmk/bounce/session"
 )
 
