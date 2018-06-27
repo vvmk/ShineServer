@@ -16,10 +16,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "ping, %q", html.EscapeString(r.URL.Path))
 }
 
-func Login(w http.ResponseWriter, r *http.Request) {
-
-}
-
 func GetRoutine(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -68,5 +64,23 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		panic(err)
+	}
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+	sess := globalSessions.SessionStart(w, r)
+
+	r.ParseForm()
+
+	// do successful login things
+	if r.Method == "GET" {
+		w.Header().Set("Content-Type", JSON)
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(sess.Get("username")); err != nil {
+			panic(err)
+		}
+	} else {
+		sess.Set("username", r.Form["username"])
+		http.Redirect(w, r, "/", 302)
 	}
 }

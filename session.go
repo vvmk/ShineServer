@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 )
 
 type Manager struct {
@@ -25,7 +26,7 @@ type Provider interface {
 	SessionInit(sid string) (Session, error)
 	SessionRead(sid string) (Session, error)
 	SessionDestroy(sid string) (Session, error)
-	SessionGC(maxLifeTime int64)
+	SessionGC(maxLife int64)
 }
 
 // Only four session operations: get, set, delete, and get sid
@@ -79,6 +80,8 @@ func (manager *Manager) sessionId() string {
 	return base64.URLEncoding.EncodeToString(b)
 }
 
+// SessionStart checks the existence of any sessions for the current user
+// or creates a new one if none are found
 func (manager *Manager) SessionStart(w http.ResponseWriter, r *http.Request) (session Session) {
 	manager.lock.Lock()
 	defer manager.lock.Unlock()
@@ -86,7 +89,9 @@ func (manager *Manager) SessionStart(w http.ResponseWriter, r *http.Request) (se
 	cookie, err := r.Cookie(manager.cookieName)
 	if err != nil || cookie.Value == "" {
 		sid := manager.sessionId()
+
 		session, _ = manager.provider.SessionInit(sid)
+
 		cookie := http.Cookie{
 			Name:     manager.cookieName,
 			Value:    url.QueryEscape(sid),
@@ -94,6 +99,7 @@ func (manager *Manager) SessionStart(w http.ResponseWriter, r *http.Request) (se
 			HttpOnly: true,
 			MaxAge:   int(manager.maxLife),
 		}
+
 		http.SetCookie(w, &cookie)
 	} else {
 		sid, _ := url.QueryUnescape(cookie.Value)
@@ -101,4 +107,36 @@ func (manager *Manager) SessionStart(w http.ResponseWriter, r *http.Request) (se
 	}
 
 	return
+}
+
+// SessionDestroy handles logout by deleting the session
+func (manager *Manager) SessionDestroy(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie(manager.cookieName)
+	if err != nil || cookie.Value == "" {
+		return
+	} else {
+		manager.lock.Lock()
+		defer manager.lock.Unlock()
+		manager.provider.SessionDestroy(cookie.Value)
+		expiration := time.Now()
+		cookie := http.Cookie{
+			Name:     manager.cookieName,
+			Path:     "/",
+			HttpOnly: true,
+			Expires:  expiration,
+			MaxAge:   -1,
+		}
+		http.SetCookie(w, &cookie)
+	}
+}
+
+func (manager *Manager) GC() {
+	manager.lock.Lock()
+	defer manager.lock.Unlock()
+
+	manager.provider.SessionGC(manager.maxLife)
+
+	time.AfterFunc(time.Duration(manager.maxLife), func() {
+		manager.GC()
+	})
 }
