@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 )
 
@@ -34,6 +35,14 @@ func GetRoutine(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetLibrary(w http.ResponseWriter, r *http.Request) {
+
+	user := r.Context().Value("user")
+	fmt.Fprintf(w, "this is an authenticated request")
+	fmt.Fprintf(w, "Claim content:\n")
+	for k, v := range user.(*jwt.Token).Claims.(jwt.MapClaims) {
+		fmt.Fprintf(w, "%s : \t%#v\n", k, v)
+	}
+
 	vars := mux.Vars(r)
 
 	userId, err := strconv.Atoi(vars["userId"])
@@ -68,19 +77,5 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
-	sess := globalSessions.SessionStart(w, r)
 
-	r.ParseForm()
-
-	// do successful login things
-	if r.Method == "GET" {
-		w.Header().Set("Content-Type", JSON)
-		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(sess.Get("username")); err != nil {
-			panic(err)
-		}
-	} else {
-		sess.Set("username", r.Form["username"])
-		http.Redirect(w, r, "/", 302)
-	}
 }
