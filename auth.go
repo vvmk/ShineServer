@@ -7,11 +7,9 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-// TODO: real secret
-var mySigningKey = []byte("partytime")
-
 func GetJWT() (string, error) {
 
+	// TODO: gut this
 	// create the token with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"admin":   true,
@@ -21,7 +19,7 @@ func GetJWT() (string, error) {
 	})
 
 	// sign the token
-	tokenString, err := token.SignedString(mySigningKey)
+	tokenString, err := token.SignedString(ssr_jwt_key)
 	if err != nil {
 		return "", err
 	}
@@ -31,7 +29,7 @@ func GetJWT() (string, error) {
 
 var jwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options{
 	ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
-		return mySigningKey, nil
+		return ssr_jwt_key, nil
 	},
 	SigningMethod: jwt.SigningMethodHS256,
 })

@@ -15,8 +15,7 @@ func NewRouter() *mux.Router {
 
 		handler = route.HandlerFunc
 
-		// TODO: temporary
-		if route.Name != "Login" {
+		if route.Protected {
 			handler = jwtMiddleware.Handler(handler)
 		}
 

@@ -82,10 +82,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	tag := r.Header.Get("tag")
 	pass := r.Header.Get("pass")
 
-	// login is good, give back a token
 	if creds[tag] == pass {
 		w.Header().Set("Content-Type", JSON)
-		//w.Header().Set("token", token)
 
 		token, err := GetJWT()
 		if err != nil {
