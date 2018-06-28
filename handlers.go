@@ -79,13 +79,18 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 func Login(w http.ResponseWriter, r *http.Request) {
 	creds := map[string]string{"vvmk": "secret"}
 
+	// TODO: parse login credentials
 	tag := r.Header.Get("tag")
 	pass := r.Header.Get("pass")
 
+	// TODO: send the credentials to be checked. err != nil { failed login }
+	user := RepoFindUser(1)
+
+	// login successful
 	if creds[tag] == pass {
 		w.Header().Set("Content-Type", JSON)
 
-		token, err := GetJWT()
+		token, err := GetJWT(&user)
 		if err != nil {
 			panic(err)
 		}

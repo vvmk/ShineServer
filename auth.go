@@ -7,18 +7,14 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-func GetJWT() (string, error) {
-
-	// TODO: gut this
-	// create the token with claims
+// GetJWT returns a new JWT token for an authenticated user
+func GetJWT(u *User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"admin":   true,
-		"user_id": 1,
-		"tag":     "vvmk",
-		"exp":     time.Now().Add(time.Hour * 24).Unix(),
+		"admin": false,
+		"uid":   u.UserId,
+		"exp":   time.Now().Add(time.Hour * 24).Unix(),
 	})
 
-	// sign the token
 	tokenString, err := token.SignedString(ssr_jwt_key)
 	if err != nil {
 		return "", err
@@ -27,6 +23,7 @@ func GetJWT() (string, error) {
 	return tokenString, nil
 }
 
+// jwtMiddleware checks for a valid JWT on protected routes
 var jwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options{
 	ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 		return ssr_jwt_key, nil

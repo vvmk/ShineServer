@@ -15,6 +15,8 @@ func NewRouter() *mux.Router {
 
 		handler = route.HandlerFunc
 
+		// TODO: if valid but time is up
+		// TODO: invalidate non-expired JWTs on logout
 		if route.Protected {
 			handler = jwtMiddleware.Handler(handler)
 		}
