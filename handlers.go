@@ -77,5 +77,28 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
+	creds := map[string]string{"vvmk": "secret"}
 
+	tag := r.Header.Get("tag")
+	pass := r.Header.Get("pass")
+
+	// login is good, give back a token
+	if creds[tag] == pass {
+		w.Header().Set("Content-Type", JSON)
+		//w.Header().Set("token", token)
+
+		token, err := GetJWT()
+		if err != nil {
+			panic(err)
+		}
+
+		t := struct {
+			Token string `json:"token"`
+		}{token}
+
+		json.NewEncoder(w).Encode(t)
+
+	} else {
+		w.WriteHeader(http.StatusUnauthorized)
+	}
 }

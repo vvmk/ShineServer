@@ -1,7 +1,6 @@
 package main
 
 import (
-	"net/http"
 	"time"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware"
@@ -11,21 +10,24 @@ import (
 // TODO: real secret
 var mySigningKey = []byte("partytime")
 
-var GetTokenHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func GetJWT() (string, error) {
 
 	// create the token with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"admin": true,
-		"email": "v@complexaesthetic.com",
-		"exp":   time.Now().Add(time.Hour * 24).Unix(),
+		"admin":   true,
+		"user_id": 1,
+		"tag":     "vvmk",
+		"exp":     time.Now().Add(time.Hour * 24).Unix(),
 	})
 
 	// sign the token
-	tokenString, _ := token.SignedString(mySigningKey)
+	tokenString, err := token.SignedString(mySigningKey)
+	if err != nil {
+		return "", err
+	}
 
-	// write the token to the browser window
-	w.Write([]byte(tokenString))
-})
+	return tokenString, nil
+}
 
 var jwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options{
 	ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
