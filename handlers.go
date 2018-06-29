@@ -11,6 +11,27 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type RoutineRepo interface {
+	FindRoutineById(routineId int) (*Routine, error)
+	FindRoutinesByCreator(creatorId int) (Routines, error)
+	FindRoutinesByLibrary(userId int) (Routines, error)
+	CreateRoutine(r *Routine) (*Routine, error)
+	AddRoutineToLibrary(userId int, routineId int) error
+	RemoveRoutineFromLibrary(userId int, routineId int) error
+	UpdateRoutine(r *Routine) (*Routine, error)
+	DeleteRoutine(routineId int) error
+	GetAllRoutines() (Routines, error)
+}
+
+type UserRepo interface {
+	FindUserById(userId int) (*User, error)
+	FindUserByEmail(email string) (*User, error)
+	CreateUser(user *User) (*User, error)
+	UpdateUser(user *User) (*User, error)
+	DeleteUser(userId int) error
+	GetAllUsers() (Users, error)
+}
+
 const JSON = "application/json; charset=UTF-8"
 
 func Index(w http.ResponseWriter, r *http.Request) {
