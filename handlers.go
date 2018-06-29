@@ -35,29 +35,29 @@ const JSON = "application/json; charset=UTF-8"
 
 func Login(w http.ResponseWriter, r *http.Request) {
 
-	email, password, ok := r.BasicAuth()
+	email, password, _ := r.BasicAuth()
 
-	// TODO: send the credentials to be checked. err != nil { failed login }
+	// TODO: if email not found, return 401.
+	hash, _ := HashPassword("secret")
 	user := RepoFindUser(1)
 
-	// login successful
-	if creds[tag] == pass {
-		w.Header().Set("Content-Type", JSON)
-
-		token, err := GetJWT(&user)
-		if err != nil {
-			panic(err)
-		}
-
-		t := struct {
-			Token string `json:"token"`
-		}{token}
-
-		json.NewEncoder(w).Encode(t)
-
-	} else {
-		w.WriteHeader(http.StatusUnauthorized)
+	if !CheckPasswordHash(password, hash) {
+		w.Write("Bad login", http.StatusUnauthorized)
+		return
 	}
+
+	w.Header().Set("Content-Type", JSON)
+
+	token, err := GetJWT(&user)
+	if err != nil {
+		panic(err)
+	}
+
+	t := struct {
+		Token string `json:"token"`
+	}{token}
+
+	json.NewEncoder(w).Encode(t)
 }
 
 func GetLibrary(w http.ResponseWriter, r *http.Request) {
@@ -103,7 +103,6 @@ func GetRoutine(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateRoutine(w http.ResponseWriter, r *http.Request) {
-
 }
 
 func ForkRoutine(w http.ResponseWriter, r *http.Request) {
