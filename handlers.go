@@ -28,17 +28,14 @@ type UserRepo interface {
 	CreateUser(user *User) (*User, error)
 	UpdateUser(user *User) (*User, error)
 	DeleteUser(userId int) error
-	GetAllUsers() (Users, error)
+	GetAllUsers() ([]User, error)
 }
 
 const JSON = "application/json; charset=UTF-8"
 
 func Login(w http.ResponseWriter, r *http.Request) {
-	creds := map[string]string{"vvmk": "secret"}
 
-	// TODO: parse login credentials
-	tag := r.Header.Get("tag")
-	pass := r.Header.Get("pass")
+	email, password, ok := r.BasicAuth()
 
 	// TODO: send the credentials to be checked. err != nil { failed login }
 	user := RepoFindUser(1)
@@ -106,6 +103,7 @@ func GetRoutine(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateRoutine(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func ForkRoutine(w http.ResponseWriter, r *http.Request) {

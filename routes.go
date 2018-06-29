@@ -88,6 +88,7 @@ var routes = Routes{
 	Route{
 		"DeleteUser",
 		"DELETE",
+		"/users/{userId}",
 		DeleteUser,
 		true,
 	},
