@@ -35,14 +35,15 @@ const JSON = "application/json; charset=UTF-8"
 
 func Login(w http.ResponseWriter, r *http.Request) {
 
-	email, password, _ := r.BasicAuth()
+	// TODO: email and ok? omitted until the db exists
+	_, password, _ := r.BasicAuth()
 
 	// TODO: if email not found, return 401.
 	hash, _ := HashPassword("secret")
 	user := RepoFindUser(1)
 
 	if !CheckPasswordHash(password, hash) {
-		w.Write("Bad login", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
@@ -63,9 +64,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 func GetLibrary(w http.ResponseWriter, r *http.Request) {
 
 	user := r.Context().Value("user")
-	fmt.Fprintf(w, "this is an authenticated request")
-	fmt.Fprintf(w, "Claim content:\n")
+
 	for k, v := range user.(*jwt.Token).Claims.(jwt.MapClaims) {
+		// TODO: get the claims and check for admin, uid, expiration, etc...
 		fmt.Fprintf(w, "%s : \t%#v\n", k, v)
 	}
 
