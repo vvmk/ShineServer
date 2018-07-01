@@ -8,9 +8,13 @@ import (
 	"github.com/namsral/flag"
 )
 
-const port = ":8080"
+const port = ":80"
 
 var ssr_jwt_key []byte
+
+type Env struct {
+	db models.Datastore
+}
 
 func main() {
 
