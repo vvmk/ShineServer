@@ -9,10 +9,7 @@ import (
 type Datastore interface {
 	FindRoutineById(routineId int) (*Routine, error)
 	FindRoutinesByCreator(creatorId int) ([]*Routine, error)
-	FindRoutinesByLibrary(userId int) ([]*Routine, error)
 	CreateRoutine(r *Routine) (int, error)
-	AddRoutineToLibrary(userId int, routineId int) error
-	RemoveRoutineFromLibrary(userId int, routineId int) error
 	UpdateRoutine(r *Routine) (int, error)
 	DeleteRoutine(routineId int) error
 	GetAllRoutines() ([]*Routine, error)

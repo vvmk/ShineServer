@@ -11,7 +11,7 @@ type Routine struct {
 	CreatorId         int       `json:"creator_id"`
 	Created           time.Time `json:"created"`
 	Popularity        int       `json:"popularity"`
-	Drills            []Drill   `json:"drills"`
+	Drills            string    `json:"drills"`
 }
 
 type Drill struct {
@@ -61,20 +61,19 @@ func (db *DB) FindRoutinesByCreator(creatorId int) ([]*Routine, error) {
 	return routines, nil
 }
 
-func (db *DB) FindRoutinesByLibrary(userId int) ([]*Routine, error) {
-
-}
-
 func (db *DB) CreateRoutine(r *Routine) (int, error) {
+	var routineId int
 
-}
+	query := `INSERT INTO routines(title, total_duration, character, original_creator_id, creator_id, drills)
+	VALUES($1, $2, $3, $4, $5, $6)
+	RETURNING routine_id;`
 
-func (db *DB) AddRoutineToLibrary(userId int, routineId int) error {
+	err := db.QueryRow(query, r.Title, r.TotalDuration, r.Character, r.OriginialCreatorId, r.CreatorId, r.Drills).Scan(&routineId)
+	if err != nil {
+		return -1, err
+	}
 
-}
-
-func (db *DB) RemoveRoutineFromLibrary(userId int, routineId int) error {
-
+	return routineId, err
 }
 
 func (db *DB) UpdateRoutine(r *Routine) (int, error) {
