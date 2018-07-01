@@ -20,12 +20,24 @@ type Env struct {
 
 func main() {
 
+	// jwt
 	var ssr_jwt string
 	flag.StringVar(&ssr_jwt, "ssrjwt", "", "ssr jwt signing key")
 	flag.Parse()
 
 	ssr_jwt_key = []byte(ssr_jwt)
 
+	// init db
+	connStr := "user=ssr-dev dbname=ssr-db sslmode=verify-full"
+	db, err := models.NewDB(connStr)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	// inject
+	env := &Env{db}
+
+	// serve
 	router := NewRouter()
 
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
