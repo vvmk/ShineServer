@@ -12,11 +12,13 @@ import (
 
 const port = ":80"
 
-var ssr_jwt_key []byte
-
 type Env struct {
 	db models.Datastore
 }
+
+var env Env
+
+var ssr_jwt_key []byte
 
 func main() {
 
@@ -35,7 +37,7 @@ func main() {
 	}
 
 	// inject
-	env := &Env{db}
+	env = Env{db}
 
 	// serve
 	router := NewRouter()
