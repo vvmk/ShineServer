@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/vvmk/bounce/models"
+
 	"github.com/gorilla/handlers"
 	"github.com/namsral/flag"
 )

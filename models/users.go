@@ -20,7 +20,7 @@ func (db *DB) FindUserById(userId int) (*User, error) {
 		return nil, err
 	}
 
-	return user, nil
+	return &user, nil
 }
 
 func (db *DB) FindUserByEmail(email string) (*User, error) {
@@ -33,7 +33,7 @@ func (db *DB) FindUserByEmail(email string) (*User, error) {
 		return nil, err
 	}
 
-	return user
+	return &user, nil
 }
 
 func (db *DB) CreateUser(u *User) (int, error) {
@@ -45,7 +45,7 @@ func (db *DB) CreateUser(u *User) (int, error) {
 
 	err := db.QueryRow(query, u.Email, false, u.Hash, u.Tag, u.Main, u.Bio).Scan(&userId)
 	if err != nil {
-		return nil, err
+		return -1, err
 	}
 
 	return userId, nil
@@ -61,16 +61,16 @@ func (db *DB) UpdateUser(u *User) (int, error) {
 
 	err := db.QueryRow(query, u.UserId, u.Tag, u.Main, u.Bio).Scan(&userId)
 	if err != nil {
-		return nil, err
+		return -1, err
 	}
 
-	return userId
+	return userId, nil
 }
 
-func (db *DB) DeleteUser(u int) error {
+func (db *DB) DeleteUser(userId int) error {
 	query := `DELETE FROM users WHERE user_id = $1;`
 
-	_, err = db.Exec(query, u.UserId)
+	_, err := db.Exec(query, userId)
 	if err != nil {
 		return nil
 	}

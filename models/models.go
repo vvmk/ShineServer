@@ -6,7 +6,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type RoutineRepo interface {
+type Datastore interface {
 	FindRoutineById(routineId int) (*Routine, error)
 	FindRoutinesByCreator(creatorId int) ([]*Routine, error)
 	FindRoutinesByLibrary(userId int) ([]*Routine, error)
@@ -16,9 +16,6 @@ type RoutineRepo interface {
 	UpdateRoutine(r *Routine) (int, error)
 	DeleteRoutine(routineId int) error
 	GetAllRoutines() ([]*Routine, error)
-}
-
-type UserRepo interface {
 	FindUserById(userId int) (*User, error)
 	FindUserByEmail(email string) (*User, error)
 	CreateUser(user *User) (int, error)
