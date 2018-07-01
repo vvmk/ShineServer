@@ -29,7 +29,7 @@ func (db *DB) FindRoutineById(routineId int) (*Routine, error) {
 		return nil, err
 	}
 
-	return &routine
+	return &routine, nil
 }
 
 func (db *DB) FindRoutinesByCreator(creatorId int) ([]*Routine, error) {
@@ -68,22 +68,64 @@ func (db *DB) CreateRoutine(r *Routine) (int, error) {
 	VALUES($1, $2, $3, $4, $5, $6)
 	RETURNING routine_id;`
 
-	err := db.QueryRow(query, r.Title, r.TotalDuration, r.Character, r.OriginialCreatorId, r.CreatorId, r.Drills).Scan(&routineId)
+	err := db.QueryRow(query, r.Title, r.TotalDuration, r.Character, r.OriginalCreatorId, r.CreatorId, r.Drills).Scan(&routineId)
 	if err != nil {
 		return -1, err
 	}
 
-	return routineId, err
+	return routineId, nil
 }
 
 func (db *DB) UpdateRoutine(r *Routine) (int, error) {
+	var routineId int
 
+	query := `UPDATE routines
+	SET title = $2, total_duration = $3, character = $4, drills = $5
+	RETURNING routine_id;`
+
+	err := db.QueryRow(query, r.Title, r.TotalDuration, r.Character, r.Drills).Scan(&routineId)
+	if err != nil {
+		return -1, err
+	}
+
+	return routineId, nil
 }
 
 func (db *DB) DeleteRoutine(routineId int) error {
+	query := `DELETE FROM routines WHERE routine_id = $1;`
 
+	_, err := db.Exec(query, routineId)
+	if err != nil {
+		return nil
+	}
+
+	return nil
 }
 
 func (db *DB) GetAllRoutines() ([]*Routine, error) {
 
+	query := `SELECT * FROM routines`
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	routines := make([]*Routine, 0)
+	for rows.Next() {
+		r := &Routine{}
+
+		err := rows.Scan(&r.RoutineId, &r.Title, &r.TotalDuration, &r.Character, &r.OriginalCreatorId, &r.CreatorId, &r.Created, &r.Popularity, &r.Drills)
+		if err != nil {
+			return nil, err
+		}
+
+		routines = append(routines, r)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return routines, nil
 }

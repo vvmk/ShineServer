@@ -55,7 +55,7 @@ func (db *DB) UpdateUser(u *User) (int, error) {
 	var userId int
 
 	query := `UPDATE users
-		SET tag = $3, main = $4, bio = $5
+		SET tag = $2, main = $3, bio = $4
 		WHERE user_id = $1
 		RETURNING user_id;`
 
