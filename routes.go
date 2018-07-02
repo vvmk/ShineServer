@@ -79,13 +79,6 @@ var routes = Routes{
 		false,
 	},
 	Route{
-		"CreateUser",
-		"POST",
-		"/users",
-		CreateUser,
-		false,
-	},
-	Route{
 		"EditUser",
 		"PUT",
 		"/users/{userId}",

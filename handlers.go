@@ -149,9 +149,6 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
-}
-
 func EditUser(w http.ResponseWriter, r *http.Request) {
 }
 
