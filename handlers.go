@@ -8,6 +8,8 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
+	"github.com/goware/emailx"
+	"github.com/vvmk/bounce/models"
 )
 
 const JSON = "application/json; charset=UTF-8"
@@ -38,6 +40,42 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}{token}
 
 	json.NewEncoder(w).Encode(t)
+}
+
+func Register(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	email := emailx.Normalize(vars["email"])
+
+	err := emailx.ValidateFast(email)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	password, err := HashPassword(vars["password"])
+	if err != nil {
+		panic(err)
+	}
+
+	user := &models.User{
+		Email:     email,
+		Confirmed: false,
+		Hash:      password,
+		Tag:       vars["tag"],
+		Main:      vars["main"],
+		Bio:       "",
+	}
+
+	id, err := env.db.CreateUser(user)
+	if err != nil {
+		panic(err)
+	}
+
+	// TODO: Dispatch confirmation email and redirect to Login
+
+	w.Header().Set("Content-Type", JSON)
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "{\"id\":\"%d\"}", id)
 }
 
 func GetLibrary(w http.ResponseWriter, r *http.Request) {

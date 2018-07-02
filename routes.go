@@ -23,6 +23,13 @@ var routes = Routes{
 		false,
 	},
 	Route{
+		"Register",
+		"POST",
+		"/register",
+		Register,
+		false,
+	},
+	Route{
 		"Library",
 		"GET",
 		"/users/{userId}/library",
