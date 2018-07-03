@@ -142,13 +142,22 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 func ConfirmUser(w http.ResponseWriter, r *http.Request) {
 
-	params := r.URL.Query()
-	token := params["token"][0]
-	userId, err := strconv.Atoi(params["uid"][0])
+	// get params from post body
+	body := struct {
+		Uid   int
+		Token string
+	}{0, ""}
+
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&body)
 	if err != nil {
 		panic(err)
 	}
 
+	token := body.Token
+	userId := body.Uid
+
+	// try to validate/confirm user
 	err = env.db.ConfirmUser(userId, token)
 	if err != nil {
 		panic(err)

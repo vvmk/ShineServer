@@ -30,6 +30,13 @@ var routes = Routes{
 		false,
 	},
 	Route{
+		"Confirm",
+		"POST",
+		"/confirm",
+		ConfirmUser,
+		false,
+	},
+	Route{
 		"Library",
 		"GET",
 		"/users/{userId}/library",

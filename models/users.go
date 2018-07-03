@@ -21,33 +21,32 @@ type Activation struct {
 	Token        string
 	Issued       time.Time
 	Expires      time.Time
-	Used         time.Time
 }
 
 func (db *DB) FindUserById(userId int) (*User, error) {
-	var user User
+	var u User
 
 	query := "SELECT * FROM users WHERE user_id=?;"
 
-	err := db.QueryRow(query, userId).Scan(&user)
+	err := db.QueryRow(query, userId).Scan(&u.UserId, &u.Email, &u.Confirmed, &u.Hash, &u.Tag, &u.Main, &u.Bio)
 	if err != nil {
 		return nil, err
 	}
 
-	return &user, nil
+	return &u, nil
 }
 
 func (db *DB) FindUserByEmail(email string) (*User, error) {
-	var user User
+	var u User
 
 	query := "SELECT * FROM users WHERE email=?;"
 
-	err := db.QueryRow(query, email).Scan(&user)
+	err := db.QueryRow(query, email).Scan(&u.UserId, &u.Email, &u.Confirmed, &u.Hash, &u.Tag, &u.Main, &u.Bio)
 	if err != nil {
 		return nil, err
 	}
 
-	return &user, nil
+	return &u, nil
 }
 
 func (db *DB) CreateUser(u *User) (int, error) {
@@ -104,11 +103,11 @@ func (db *DB) CreateActivation(userId int, token string) error {
 
 // TODO: written after midnight, please review.
 func (db *DB) ConfirmUser(userId int, token string) error {
+
+	query := `SELECT * FROM activations WHERE user_id=$1;`
+
 	var a Activation
-
-	query := `SELECT * FROM activations WHERE userId = $1;`
-
-	err := db.QueryRow(query, userId).Scan(&a)
+	err := db.QueryRow(query, userId).Scan(&a.ActivationId, &a.UserId, &a.Token, &a.Issued, &a.Expires)
 	if err != nil {
 		return err
 	}
@@ -124,8 +123,8 @@ func (db *DB) ConfirmUser(userId int, token string) error {
 		return err
 	}
 
-	// set token used to time.Now()
-	_, err = db.Exec("UPDATE activations SET used = $1 WHERE activation_id = $2;", time.Now(), a.ActivationId)
+	// just delete the row. that'll invalidate'em
+	_, err = db.Exec("DELETE FROM activations WHERE activation_id=$1;", a.ActivationId)
 	if err != nil {
 		return err
 	}
