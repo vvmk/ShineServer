@@ -1,5 +1,10 @@
 package models
 
+import (
+	"errors"
+	"time"
+)
+
 type User struct {
 	UserId    int
 	Email     string
@@ -8,6 +13,15 @@ type User struct {
 	Tag       string
 	Main      string
 	Bio       string
+}
+
+type Activation struct {
+	ActivationId int
+	UserId       int
+	Token        string
+	Issued       time.Time
+	Expires      time.Time
+	Used         time.Time
 }
 
 func (db *DB) FindUserById(userId int) (*User, error) {
@@ -65,6 +79,37 @@ func (db *DB) UpdateUser(u *User) (int, error) {
 	}
 
 	return userId, nil
+}
+
+// TODO: written after midnight, please review.
+func (db *DB) ConfirmUser(userId int, token string) error {
+	var a Activation
+
+	query := `SELECT * FROM activations WHERE userId = $1;`
+
+	err := db.QueryRow(query, userId).Scan(&a)
+	if err != nil {
+		return err
+	}
+
+	// check if its expired
+	if token != a.Token || time.Now().After(a.Expires) {
+		return errors.New("invalid token")
+	}
+
+	// switch user to confirmed
+	_, err = db.Exec("UPDATE users SET confirmed = true WHERE user_id = $1;", userId)
+	if err != nil {
+		return err
+	}
+
+	// set token used to time.Now()
+	_, err = db.Exec("UPDATE activations SET used = $1 WHERE activation_id = $2;", time.Now(), a.ActivationId)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (db *DB) DeleteUser(userId int) error {
