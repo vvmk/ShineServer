@@ -18,16 +18,14 @@ func CheckPasswordHash(password string, hash string) bool {
 }
 
 // GenerateEmailToken creates a base64'd 16B crypto-random for single-use email auth
-func GenerateEmailToken() (string, err) {
+func GenerateEmailToken() (string, error) {
 	b := make([]byte, 16)
 	_, err := rand.Read(b)
 	if err != nil {
 		return "", err
 	}
-	token, err := base64.URLEncoding.EncodeToString(b)
-	if err != nil {
-		return "", err
-	}
 
-	return token
+	token := base64.URLEncoding.EncodeToString(b)
+
+	return token, err
 }

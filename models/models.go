@@ -16,7 +16,8 @@ type Datastore interface {
 	FindUserById(userId int) (*User, error)
 	FindUserByEmail(email string) (*User, error)
 	CreateUser(user *User) (int, error)
-	ConfirmUser(token string) error
+	CreateActivation(userId int, token string) error
+	ConfirmUser(userId int, token string) error
 	UpdateUser(user *User) (int, error)
 	DeleteUser(userId int) error
 	GetAllUsers() ([]*User, error)

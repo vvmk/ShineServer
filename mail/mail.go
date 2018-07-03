@@ -3,6 +3,7 @@
 package mail
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/sendgrid/rest"
@@ -10,17 +11,30 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
-// SendConfirmation builds a message and dispatches a confirmation email
-// to the supplied address.
-func SendConfirmation(tag string, address string) (*rest.Response, error) {
-	from := mail.NewEmail("vv", "ssrbot@ssr.complexaesthetic.com")
+type MessageData struct {
+	Address string
+	Tag     string
+	Token   string
+}
+
+// SendConfirmation builds and dispatches an email confirmation to new users.
+func SendConfirmation(data *MessageData) (*rest.Response, error) {
+	from := mail.NewEmail("vvmk", "vv@shfflshinerepeat.com")
 	subject := "Welcome to the party!"
-	to := mail.NewEmail(tag, address)
+	to := mail.NewEmail(data.Tag, data.Address)
+	confirm := fmt.Sprintf("https://shfflshinerepeat.com/confirm?token=%s", data.Token)
 
-	plainTextContent := "Thanks for signing up and jumping through this extra hoop. You can confirm your email using the link below:\n"
-	htmlContent := "Thanks for signing up and jumping through this extra hoop. You can confirm your email using the link below:\n"
+	message := new(mail.SGMailV3)
+	message.SetTemplateID(os.Getenv("SENDGRID_TEMPLATE_CONFIRMATION"))
+	message.SetFrom(from)
+	message.Subject = subject
 
-	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
+	p := mail.NewPersonalization()
+	p.AddTos(to)
+	p.SetSubstitution("-confirmlink-", confirm)
+	p.SetSubstitution("-ssrtag-", data.Tag)
+	message.AddPersonalizations(p)
+
 	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
 	response, err := client.Send(message)
 	if err != nil {

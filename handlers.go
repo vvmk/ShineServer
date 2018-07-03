@@ -62,9 +62,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	email := emailx.Normalize(nu.Email)
 
-	// looks better than nil-ing err
-	e := emailx.ValidateFast(email)
-	if e != nil {
+	err = emailx.ValidateFast(email)
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("invalid email"))
 		log.Printf("invalid email: %s", email)
@@ -85,25 +84,43 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		Bio:       "",
 	}
 
+	//TODO: these things should be grouped together somehow,
+	// too many points of failure
 	id, err := env.db.CreateUser(user)
 	if err != nil {
 		panic(err)
 	}
 
-	// TODO: I might want the mail pkg to be responsible for its responses
-	mailerResponse, err := mail.SendConfirmation(user.Tag, user.Email)
+	token, err := GenerateEmailToken()
+	if err != nil {
+		panic(err)
+	}
+
+	err = env.db.CreateActivation(id, token)
+	if err != nil {
+		panic(err)
+	}
+
+	// TODO: maybe the mail pkg should be responsible for handling more of this
+	messageData := &mail.MessageData{
+		Address: user.Email,
+		Tag:     user.Tag,
+		Token:   token,
+	}
+
+	mailerResponse, err := mail.SendConfirmation(messageData)
 	if err != nil {
 		panic(err)
 	}
 
 	res := struct {
-		user_id         int
-		message         string
-		mailer_response *rest.Response
+		UserId         int            `json:"user_id"`
+		Message        string         `json:"message"`
+		MailerResponse *rest.Response `json:"mailer_response"`
 	}{
-		user_id:         id,
-		message:         "Confirmation email sent",
-		mailer_response: mailerResponse,
+		UserId:         id,
+		Message:        "Confirmation email sent",
+		MailerResponse: mailerResponse,
 	}
 
 	// TODO: 200 and email sent/received but empty object in response body
@@ -118,7 +135,18 @@ func Register(w http.ResponseWriter, r *http.Request) {
 // TODO: ConfirmUser handles a user clicking an emailed confirmation link
 // and updates their db entry to confirmed=true
 func ConfirmUser(w http.ResponseWriter, r *http.Request) {
+	// email link will send user to the client web app, which will post
+	// their userId and the one time access code.
 
+	// call db.ConfirmUser and check the errors
+
+	// send back an all clear.
+
+	// Should I log them in automatically? that would just require generating
+	// a jwt like on login and sending it back with the redirect
+
+	// or just redirect the user to the login page and make em log in the
+	// normal way
 }
 
 func GetLibrary(w http.ResponseWriter, r *http.Request) {

@@ -81,6 +81,27 @@ func (db *DB) UpdateUser(u *User) (int, error) {
 	return userId, nil
 }
 
+// TODO: May be necessary to add a 'reason' to the table
+func (db *DB) CreateActivation(userId int, token string) error {
+	now := time.Now()
+	a := &Activation{
+		UserId:  userId,
+		Token:   token,
+		Issued:  now,
+		Expires: now.Add(time.Hour * 48),
+	}
+
+	query := `INSERT INTO activations(user_id, code, issued, expired)
+	VALUES($1, $2, $3, $4);`
+
+	_, err := db.Exec(query, a.UserId, a.Token, a.Issued, a.Expires)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // TODO: written after midnight, please review.
 func (db *DB) ConfirmUser(userId int, token string) error {
 	var a Activation
