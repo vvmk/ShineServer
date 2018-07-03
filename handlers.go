@@ -3,12 +3,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/goware/emailx"
+	"github.com/sendgrid/rest"
+	"github.com/vvmk/bounce/mail"
 	"github.com/vvmk/bounce/models"
 )
 
@@ -42,17 +45,33 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(t)
 }
 
-func Register(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	email := emailx.Normalize(vars["email"])
+type NewUserRequest struct {
+	Email    string
+	Password string
+	Tag      string
+	Main     string
+}
 
-	err := emailx.ValidateFast(email)
+func Register(w http.ResponseWriter, r *http.Request) {
+	var nu NewUserRequest
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&nu)
 	if err != nil {
+		panic(err)
+	}
+
+	email := emailx.Normalize(nu.Email)
+
+	// looks better than nil-ing err
+	e := emailx.ValidateFast(email)
+	if e != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("invalid email"))
+		log.Printf("invalid email: %s", email)
 		return
 	}
 
-	password, err := HashPassword(vars["password"])
+	password, err := HashPassword(nu.Password)
 	if err != nil {
 		panic(err)
 	}
@@ -61,8 +80,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		Email:     email,
 		Confirmed: false,
 		Hash:      password,
-		Tag:       vars["tag"],
-		Main:      vars["main"],
+		Tag:       nu.Tag,
+		Main:      nu.Main,
 		Bio:       "",
 	}
 
@@ -71,11 +90,35 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	// TODO: Dispatch confirmation email and redirect to Login
+	// TODO: I might want the mail pkg to be responsible for its responses
+	mailerResponse, err := mail.SendConfirmation(user.Tag, user.Email)
+	if err != nil {
+		panic(err)
+	}
 
+	res := struct {
+		user_id         int
+		message         string
+		mailer_response *rest.Response
+	}{
+		user_id:         id,
+		message:         "Confirmation email sent",
+		mailer_response: mailerResponse,
+	}
+
+	// TODO: 200 and email sent/received but empty object in response body
+	// either respond with a redirect to a thank you page or the new user profile
 	w.Header().Set("Content-Type", JSON)
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "{\"id\":\"%d\"}", id)
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		panic(err)
+	}
+}
+
+// TODO: ConfirmUser handles a user clicking an emailed confirmation link
+// and updates their db entry to confirmed=true
+func ConfirmUser(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func GetLibrary(w http.ResponseWriter, r *http.Request) {

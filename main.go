@@ -1,16 +1,17 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/vvmk/bounce/models"
 
 	"github.com/gorilla/handlers"
-	"github.com/namsral/flag"
 )
 
-const port = ":80"
+const port = ":8080"
 
 type Env struct {
 	db models.Datastore
@@ -22,18 +23,22 @@ var ssr_jwt_key []byte
 
 func main() {
 
-	// jwt
-	var ssr_jwt string
-	flag.StringVar(&ssr_jwt, "ssrjwt", "", "ssr jwt signing key")
-	flag.Parse()
+	// jwt key
+	// var ssr_jwt string
+	// flag.StringVar(&ssr_jwt, "ssrjwt", "", "ssr jwt signing key")
+	// flag.Parse()
 
-	ssr_jwt_key = []byte(ssr_jwt)
+	ssr_jwt_key = []byte(os.Getenv("SSRJWT"))
 
 	// init db
-	connStr := "user=ssr-dev dbname=ssr-db sslmode=verify-full"
+	dbU := os.Getenv("POSTGRES_USER")
+	dbP := os.Getenv("POSTGRES_PASSWORD")
+	dbD := os.Getenv("POSTGRES_DB")
+
+	connStr := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", dbU, dbP, dbD)
 	db, err := models.NewDB(connStr)
 	if err != nil {
-		log.Panic(err)
+		panic(err)
 	}
 
 	// inject
