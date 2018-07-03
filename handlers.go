@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -19,27 +20,34 @@ const JSON = "application/json; charset=UTF-8"
 
 func Login(w http.ResponseWriter, r *http.Request) {
 
-	// TODO: email and ok? omitted until the db exists
-	_, password, _ := r.BasicAuth()
+	// get the entered credentials
+	email, password, ok := r.BasicAuth()
+	if !ok {
+		panic(errors.New("Basic auth not ok!"))
+	}
 
-	// TODO: if email not found, return 401.
-	hash, _ := HashPassword("secret")
-	user := RepoFindUser(1)
+	// lookup user by email
+	user, err := env.db.FindUserByEmail(email)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 
-	if !CheckPasswordHash(password, hash) {
+	// check against stored password
+	if !CheckPasswordHash(password, user.Hash) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	w.Header().Set("Content-Type", JSON)
 
-	token, err := GetJWT(&user)
+	token, err := GetJWT(user.UserId)
 	if err != nil {
 		panic(err)
 	}
 
 	t := struct {
-		Token string `json:"token"`
+		Token string `json:"access_token"`
 	}{token}
 
 	json.NewEncoder(w).Encode(t)
@@ -52,6 +60,7 @@ type NewUserRequest struct {
 	Main     string
 }
 
+// TODO: this could use refactoring
 func Register(w http.ResponseWriter, r *http.Request) {
 	var nu NewUserRequest
 	decoder := json.NewDecoder(r.Body)
@@ -113,6 +122,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	// TODO: mail response not needed if pkg mail handles/logs its errors
 	res := struct {
 		UserId         int            `json:"user_id"`
 		Message        string         `json:"message"`
@@ -123,8 +133,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		MailerResponse: mailerResponse,
 	}
 
-	// TODO: 200 and email sent/received but empty object in response body
-	// either respond with a redirect to a thank you page or the new user profile
 	w.Header().Set("Content-Type", JSON)
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(res); err != nil {
@@ -132,21 +140,36 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TODO: ConfirmUser handles a user clicking an emailed confirmation link
-// and updates their db entry to confirmed=true
 func ConfirmUser(w http.ResponseWriter, r *http.Request) {
-	// email link will send user to the client web app, which will post
-	// their userId and the one time access code.
 
-	// call db.ConfirmUser and check the errors
+	params := r.URL.Query()
+	token := params["token"][0]
+	userId, err := strconv.Atoi(params["uid"][0])
+	if err != nil {
+		panic(err)
+	}
 
-	// send back an all clear.
+	err = env.db.ConfirmUser(userId, token)
+	if err != nil {
+		panic(err)
+	}
 
-	// Should I log them in automatically? that would just require generating
-	// a jwt like on login and sending it back with the redirect
+	// send back a jwt so user is auto logged in
+	// TODO: cleanup dup
+	jwt, err := GetJWT(userId)
+	if err != nil {
+		panic(err)
+	}
 
-	// or just redirect the user to the login page and make em log in the
-	// normal way
+	t := struct {
+		Token string `json:"access_token"`
+	}{jwt}
+
+	w.Header().Set("Content-Type", JSON)
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(t); err != nil {
+		panic(err)
+	}
 }
 
 func GetLibrary(w http.ResponseWriter, r *http.Request) {

@@ -8,10 +8,10 @@ import (
 )
 
 // GetJWT returns a new JWT token for an authenticated user
-func GetJWT(u *User) (string, error) {
+func GetJWT(userId int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"admin": false,
-		"uid":   u.UserId,
+		"uid":   userId,
 		"exp":   time.Now().Add(time.Hour * 24).Unix(),
 	})
 
