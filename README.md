@@ -1,8 +1,6 @@
-# bounce
+# SHFFL->Shine->Repeat (server)
 
-I'm developing a client app against a multi-service backend (spring) and i'm noticing that locally 
-running 6 java services plus the db and the client app was not a sustainable development practice. 
-Here entereth bounce: a tiny-in-comparison web service mocking the API of its big brother (and a chance 
-to exercise my Go muscles). 
+##### dev journal:
+**6/29/18:** Start rewriting the backend in Go, starting from a throwaway/static dev server.
 
-**6/29/18:** Go is fun. I'm just going to refactor this into the prod server.
+**7/4/18:** Changed the repo name, updated the readme, bought the domain.
