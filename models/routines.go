@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type Routine struct {
 	RoutineId         int       `json:"routine_id"`
@@ -11,7 +14,7 @@ type Routine struct {
 	CreatorId         int       `json:"creator_id"`
 	Created           time.Time `json:"created"`
 	Popularity        int       `json:"popularity"`
-	Drills            string    `json:"drills"`
+	Drills            []Drill   `json:"drills"`
 }
 
 type Drill struct {
@@ -20,16 +23,22 @@ type Drill struct {
 }
 
 func (db *DB) FindRoutineById(routineId int) (*Routine, error) {
-	var routine Routine
+	var r Routine
 
 	query := `SELECT * FROM routines WHERE routine_id=$1;`
 
-	err := db.QueryRow(query, routineId).Scan(&routine)
+	var d []byte
+	err := db.QueryRow(query, routineId).Scan(&r.RoutineId, &r.Title, &r.TotalDuration, &r.Character, &r.OriginalCreatorId, &r.CreatorId, &r.Created, &r.Popularity, &d)
 	if err != nil {
 		return nil, err
 	}
 
-	return &routine, nil
+	err = json.Unmarshal(d, &r.Drills)
+	if err != nil {
+		panic(err)
+	}
+
+	return &r, nil
 }
 
 func (db *DB) FindRoutinesByCreator(creatorId int) ([]*Routine, error) {
@@ -46,8 +55,12 @@ func (db *DB) FindRoutinesByCreator(creatorId int) ([]*Routine, error) {
 	for rows.Next() {
 		r := &Routine{}
 
-		// TODO: Drills will definitely break, its a jsonb postgres type
-		err := rows.Scan(&r.RoutineId, &r.Title, &r.TotalDuration, &r.Character, &r.OriginalCreatorId, &r.CreatorId, &r.Created, &r.Popularity, &r.Drills)
+		var d []byte
+		err := rows.Scan(&r.RoutineId, &r.Title, &r.TotalDuration, &r.Character, &r.OriginalCreatorId, &r.CreatorId, &r.Created, &r.Popularity, &d)
+		if err != nil {
+			return nil, err
+		}
+		err = json.Unmarshal(d, &r.Drills)
 		if err != nil {
 			return nil, err
 		}
@@ -62,13 +75,19 @@ func (db *DB) FindRoutinesByCreator(creatorId int) ([]*Routine, error) {
 }
 
 func (db *DB) CreateRoutine(r *Routine) (int, error) {
-	var routineId int
 
 	query := `INSERT INTO routines(title, total_duration, character, original_creator_id, creator_id, drills)
 	VALUES($1, $2, $3, $4, $5, $6)
 	RETURNING routine_id;`
 
-	err := db.QueryRow(query, r.Title, r.TotalDuration, r.Character, r.OriginalCreatorId, r.CreatorId, r.Drills).Scan(&routineId)
+	var routineId int
+
+	drills, err := json.Marshal(r.Drills)
+	if err != nil {
+		return -1, err
+	}
+
+	err = db.QueryRow(query, r.Title, r.TotalDuration, r.Character, r.OriginalCreatorId, r.CreatorId, drills).Scan(&routineId)
 	if err != nil {
 		return -1, err
 	}
