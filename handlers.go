@@ -207,9 +207,8 @@ func GetLibrary(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetRoutine(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
 
-	routineId, err := strconv.Atoi(vars["routineId"])
+	routineId, err := strconv.Atoi(mux.Vars(r)["routineId"])
 	if err != nil {
 		panic(err)
 	}
@@ -255,15 +254,42 @@ func ForkRoutine(w http.ResponseWriter, r *http.Request) {
 }
 
 func EditRoutine(w http.ResponseWriter, r *http.Request) {
+	routineId, err := strconv.Atoi(mux.Vars(r)["routineId"])
+	if err != nil {
+		panic(err)
+	}
+
+	var routine models.Routine
+
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&routine)
+	if err != nil {
+		panic(err)
+	}
+
+	err = env.db.UpdateRoutine(routineId, &routine)
+	if err != nil {
+		panic(err)
+	}
+
+	newRoutine, err := env.db.FindRoutineById(routineId)
+	if err != nil {
+		panic(err)
+	}
+
+	w.Header().Set("Content-Type", JSON)
+	w.WriteHeader(http.StatusOK)
+	if err = json.NewEncoder(w).Encode(newRoutine); err != nil {
+		panic(err)
+	}
 }
 
 func DeleteRoutine(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
 
-	userId, err := strconv.Atoi(vars["userId"])
+	userId, err := strconv.Atoi(mux.Vars(r)["userId"])
 	if err != nil {
 		panic(err)
 	}
@@ -278,6 +304,34 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func EditUser(w http.ResponseWriter, r *http.Request) {
+	userId, err := strconv.Atoi(mux.Vars(r)["userId"])
+	if err != nil {
+		panic(err)
+	}
+
+	var user models.User
+
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&user)
+	if err != nil {
+		panic(err)
+	}
+
+	err = env.db.UpdateUser(userId, &user)
+	if err != nil {
+		panic(err)
+	}
+
+	updatedUser, err := env.db.FindUserById(userId)
+	if err != nil {
+		panic(err)
+	}
+
+	w.Header().Set("Content-Type", JSON)
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(updatedUser); err != nil {
+		panic(err)
+	}
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {

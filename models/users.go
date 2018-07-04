@@ -64,20 +64,18 @@ func (db *DB) CreateUser(u *User) (int, error) {
 	return userId, nil
 }
 
-func (db *DB) UpdateUser(u *User) (int, error) {
-	var userId int
+func (db *DB) UpdateUser(userId int, u *User) error {
 
 	query := `UPDATE users
 		SET tag = $2, main = $3, bio = $4
-		WHERE user_id = $1
-		RETURNING user_id;`
+		WHERE user_id = $1;`
 
-	err := db.QueryRow(query, u.UserId, u.Tag, u.Main, u.Bio).Scan(&userId)
+	_, err := db.Exec(query, userId, u.Tag, u.Main, u.Bio)
 	if err != nil {
-		return -1, err
+		return err
 	}
 
-	return userId, nil
+	return nil
 }
 
 // TODO: May be necessary to add a 'reason' to the table

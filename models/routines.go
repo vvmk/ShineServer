@@ -96,19 +96,23 @@ func (db *DB) CreateRoutine(r *Routine) (int, error) {
 	return routineId, nil
 }
 
-func (db *DB) UpdateRoutine(r *Routine) (int, error) {
-	var routineId int
+func (db *DB) UpdateRoutine(routineId int, r *Routine) error {
 
 	query := `UPDATE routines
 	SET title = $2, total_duration = $3, character = $4, drills = $5
-	RETURNING routine_id;`
+	WHERE routine_id = $1;`
 
-	err := db.QueryRow(query, r.Title, r.TotalDuration, r.Character, r.Drills).Scan(&routineId)
+	drills, err := json.Marshal(r.Drills)
 	if err != nil {
-		return -1, err
+		return err
 	}
 
-	return routineId, nil
+	_, err = db.Exec(query, routineId, r.Title, r.TotalDuration, r.Character, drills)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (db *DB) DeleteRoutine(routineId int) error {
