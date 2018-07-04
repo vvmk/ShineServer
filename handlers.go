@@ -232,9 +232,21 @@ func CreateRoutine(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	// post that ish
+	routineId, err := env.db.CreateRoutine(&routine)
+	if err != nil {
+		panic(err)
+	}
+
+	// just for testing, remove this
+	newRoutine, err := env.db.FindRoutineById(routineId)
+	if err != nil {
+		panic(err)
+	}
+
 	w.Header().Set("Content-Type", JSON)
 	w.WriteHeader(http.StatusOK)
-	if err = json.NewEncoder(w).Encode(routine); err != nil {
+	if err = json.NewEncoder(w).Encode(newRoutine); err != nil {
 		panic(err)
 	}
 }

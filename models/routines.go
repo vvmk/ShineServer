@@ -28,7 +28,7 @@ func (db *DB) FindRoutineById(routineId int) (*Routine, error) {
 	query := `SELECT * FROM routines WHERE routine_id=$1;`
 
 	var d []byte
-	err := db.QueryRow(query, routineId).Scan(&r.RoutineId, &r.Title, &r.TotalDuration, &r.Character, &r.OriginalCreatorId, &r.CreatorId, &r.Created, &r.Popularity, &d)
+	err := db.QueryRow(query, routineId).Scan(&r.RoutineId, &r.Title, &r.TotalDuration, &r.Character, &r.OriginalCreatorId, &r.Created, &r.Popularity, &d, &r.OriginalCreatorId)
 	if err != nil {
 		return nil, err
 	}
