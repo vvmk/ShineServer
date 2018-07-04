@@ -19,7 +19,7 @@ type Routine struct {
 
 type Drill struct {
 	DrillTitle string `json:"drill_title"`
-	Duration   string `json:"duration"`
+	Duration   int    `json:"duration"`
 }
 
 func (db *DB) FindRoutineById(routineId int) (*Routine, error) {

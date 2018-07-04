@@ -224,6 +224,19 @@ func GetRoutine(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateRoutine(w http.ResponseWriter, r *http.Request) {
+	var routine models.Routine
+
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&routine)
+	if err != nil {
+		panic(err)
+	}
+
+	w.Header().Set("Content-Type", JSON)
+	w.WriteHeader(http.StatusOK)
+	if err = json.NewEncoder(w).Encode(routine); err != nil {
+		panic(err)
+	}
 }
 
 func ForkRoutine(w http.ResponseWriter, r *http.Request) {
