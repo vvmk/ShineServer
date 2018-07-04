@@ -217,6 +217,12 @@ func GetRoutine(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateRoutine(w http.ResponseWriter, r *http.Request) {
+
+	if !UserAuthorized(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	var routine models.Routine
 
 	decoder := json.NewDecoder(r.Body)
@@ -243,6 +249,12 @@ func CreateRoutine(w http.ResponseWriter, r *http.Request) {
 }
 
 func ForkRoutine(w http.ResponseWriter, r *http.Request) {
+
+	if !UserAuthorized(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	userId, _ := strconv.Atoi(vars["userId"])
 	routineId, _ := strconv.Atoi(vars["routineId"])
@@ -277,6 +289,12 @@ func ForkRoutine(w http.ResponseWriter, r *http.Request) {
 }
 
 func EditRoutine(w http.ResponseWriter, r *http.Request) {
+
+	if !UserAuthorized(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	routineId, _ := strconv.Atoi(mux.Vars(r)["routineId"])
 
 	var routine models.Routine
@@ -305,18 +323,13 @@ func EditRoutine(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteRoutine(w http.ResponseWriter, r *http.Request) {
-	userId, _ := strconv.Atoi(mux.Vars(r)["userId"])
-	routineId, _ := strconv.Atoi(mux.Vars(r)["routineId"])
 
-	user := r.Context().Value("user")
-
-	claims := user.(*jwt.Token).Claims.(jwt.MapClaims)
-
-	// not an admin and not authorized user
-	if !claims["admin"] && userId != claims["uid"] {
+	if !UserAuthorized(r) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+
+	routineId, _ := strconv.Atoi(mux.Vars(r)["routineId"])
 
 	err := env.db.DeleteRoutine(routineId)
 	if err != nil {
@@ -340,6 +353,12 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func EditUser(w http.ResponseWriter, r *http.Request) {
+
+	if !UserAuthorized(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	userId, _ := strconv.Atoi(mux.Vars(r)["userId"])
 
 	var user models.User
@@ -369,17 +388,12 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
-	userId, _ := strconv.Atoi(mux.Vars(r)["userId"])
-
-	user := r.Context().Value("user")
-
-	claims := user.(*jwt.Token).Claims.(jwt.MapClaims)
-
-	// not an admin and not authorized user
-	if !claims["admin"] && userId != claims["uid"] {
+	if !UserAuthorized(r) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+
+	userId, _ := strconv.Atoi(mux.Vars(r)["userId"])
 
 	err := env.db.DeleteUser(userId)
 	if err != nil {
