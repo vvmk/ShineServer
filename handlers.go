@@ -3,12 +3,10 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/goware/emailx"
 	"github.com/sendgrid/rest"
@@ -18,10 +16,27 @@ import (
 
 const JSON = "application/json; charset=UTF-8"
 
+// TokenResponse is for returning a JWT to a validated user.
 type TokenResponse struct {
 	Token string `json:"access_token"`
 }
 
+// NewUserRequest is exactly what it sounds like. See Register().
+type NewUserRequest struct {
+	Email    string
+	Password string
+	Tag      string
+	Main     string
+}
+
+// User came from an email link and is confirming or resetting something
+type EmailData struct {
+	Uid   int
+	Token string
+}
+
+// Login verifies the user's input credentials and checks them against
+// the stored data, returning an access token, 404, or 401
 func Login(w http.ResponseWriter, r *http.Request) {
 
 	// get the entered credentials
@@ -53,14 +68,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&TokenResponse{token})
 }
 
-type NewUserRequest struct {
-	Email    string
-	Password string
-	Tag      string
-	Main     string
-}
-
-// TODO: this could use refactoring
+// Register handles the creation of a new user. Right now it also handles
+// sanitization/validation of the incoming data, a little too much of
+// the email process, and has some extra test data jammed at the end in
+// addition to its usual handler duties...
+// TODO: dire need of refactoring.
 func Register(w http.ResponseWriter, r *http.Request) {
 	var nu NewUserRequest
 
@@ -141,12 +153,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// User came from an email link and is confirming or resetting something
-type EmailData struct {
-	Uid   int
-	Token string
-}
-
+// ConfirmUser handles a POST with data from an account confirmation email.
+// This POST is intended to parse the email'd link params and use them to
+// confirm a new user.
 func ConfirmUser(w http.ResponseWriter, r *http.Request) {
 
 	// get params from post body
@@ -181,33 +190,34 @@ func ConfirmUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetLibrary fetches a user's public facing routines (all of them are public)
 func GetLibrary(w http.ResponseWriter, r *http.Request) {
 
-	user := r.Context().Value("user")
+	userId, _ := strconv.Atoi(mux.Vars(r)["userId"])
 
-	for k, v := range user.(*jwt.Token).Claims.(jwt.MapClaims) {
-		// TODO: get the claims and check for admin, uid, expiration, etc...
-		fmt.Fprintf(w, "%s : \t%#v\n", k, v)
+	routines, err := env.db.FindRoutinesByCreator(userId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
 	}
-
-	vars := mux.Vars(r)
-
-	userId, _ := strconv.Atoi(vars["userId"])
-
-	library := RepoFindLibrary(userId)
 
 	w.Header().Set("Content-Type", JSON)
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(library); err != nil {
+	if err := json.NewEncoder(w).Encode(routines); err != nil {
 		panic(err)
 	}
 }
 
+// GetRoutine fetches a single routine using {routineId} or 404
 func GetRoutine(w http.ResponseWriter, r *http.Request) {
 
 	routineId, _ := strconv.Atoi(mux.Vars(r)["routineId"])
 
-	routine := RepoFindRoutine(routineId)
+	routine, err := env.db.FindRoutineById(routineId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 
 	w.Header().Set("Content-Type", JSON)
 	w.WriteHeader(http.StatusOK)
@@ -216,6 +226,7 @@ func GetRoutine(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// CreateRoutine handles an authorized user creating a brand new routine
 func CreateRoutine(w http.ResponseWriter, r *http.Request) {
 
 	if !UserAuthorized(r) {
@@ -248,6 +259,9 @@ func CreateRoutine(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ForkRoutine allows an authorized user to copy a routine.
+// A brand new Routine entry is created for the new user's id,
+// but retains the id of the original creator separately.
 func ForkRoutine(w http.ResponseWriter, r *http.Request) {
 
 	if !UserAuthorized(r) {
@@ -288,6 +302,8 @@ func ForkRoutine(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// EditRoutine modifies select fields of a user's routine and returns
+// the modified routine.
 func EditRoutine(w http.ResponseWriter, r *http.Request) {
 
 	if !UserAuthorized(r) {
@@ -322,6 +338,8 @@ func EditRoutine(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// DeleteRoutine just deletes a routine if the authorized user is its
+// creator. Any routines this one was forked from are unaffected.
 func DeleteRoutine(w http.ResponseWriter, r *http.Request) {
 
 	if !UserAuthorized(r) {
@@ -339,11 +357,16 @@ func DeleteRoutine(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// GetUser returns a user's public data or 404
 func GetUser(w http.ResponseWriter, r *http.Request) {
 
 	userId, _ := strconv.Atoi(mux.Vars(r)["userId"])
 
-	user := RepoFindUser(userId)
+	user, err := env.db.FindUserById(userId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 
 	w.Header().Set("Content-Type", JSON)
 	w.WriteHeader(http.StatusOK)
@@ -352,6 +375,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// EditUser modifies a user's public data if authorized
 func EditUser(w http.ResponseWriter, r *http.Request) {
 
 	if !UserAuthorized(r) {
@@ -386,6 +410,7 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// DeleteUser deletes a user if they are authorized...FOR GOOD.
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	if !UserAuthorized(r) {
