@@ -77,8 +77,8 @@ func (db *DB) FindRoutinesByCreator(creatorId int) ([]*Routine, error) {
 
 func (db *DB) CreateRoutine(r *Routine) (int, error) {
 
-	query := `INSERT INTO routines(title, total_duration, character, original_creator_id, creator_id, drills)
-	VALUES($1, $2, $3, $4, $5, $6)
+	query := `INSERT INTO routines(title, total_duration, character, original_creator_id, creator_id, drills, popularity)
+	VALUES($1, $2, $3, $4, $5, $6, $7)
 	RETURNING routine_id;`
 
 	var routineId int
@@ -88,7 +88,7 @@ func (db *DB) CreateRoutine(r *Routine) (int, error) {
 		return -1, err
 	}
 
-	err = db.QueryRow(query, r.Title, r.TotalDuration, r.Character, r.OriginalCreatorId, r.CreatorId, drills).Scan(&routineId)
+	err = db.QueryRow(query, r.Title, r.TotalDuration, r.Character, r.OriginalCreatorId, r.CreatorId, drills, r.Popularity).Scan(&routineId)
 	if err != nil {
 		return -1, err
 	}
@@ -99,7 +99,7 @@ func (db *DB) CreateRoutine(r *Routine) (int, error) {
 func (db *DB) UpdateRoutine(routineId int, r *Routine) error {
 
 	query := `UPDATE routines
-	SET title = $2, total_duration = $3, character = $4, drills = $5
+	SET title = $2, total_duration = $3, character = $4, popularity = $5, drills = $6
 	WHERE routine_id = $1;`
 
 	drills, err := json.Marshal(r.Drills)
@@ -107,7 +107,7 @@ func (db *DB) UpdateRoutine(routineId int, r *Routine) error {
 		return err
 	}
 
-	_, err = db.Exec(query, routineId, r.Title, r.TotalDuration, r.Character, drills)
+	_, err = db.Exec(query, routineId, r.Title, r.TotalDuration, r.Character, r.Popularity, drills)
 	if err != nil {
 		return err
 	}

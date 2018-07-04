@@ -192,10 +192,7 @@ func GetLibrary(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
-	userId, err := strconv.Atoi(vars["userId"])
-	if err != nil {
-		panic(err)
-	}
+	userId, _ := strconv.Atoi(vars["userId"])
 
 	library := RepoFindLibrary(userId)
 
@@ -208,10 +205,7 @@ func GetLibrary(w http.ResponseWriter, r *http.Request) {
 
 func GetRoutine(w http.ResponseWriter, r *http.Request) {
 
-	routineId, err := strconv.Atoi(mux.Vars(r)["routineId"])
-	if err != nil {
-		panic(err)
-	}
+	routineId, _ := strconv.Atoi(mux.Vars(r)["routineId"])
 
 	routine := RepoFindRoutine(routineId)
 
@@ -231,13 +225,11 @@ func CreateRoutine(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	// post that ish
 	routineId, err := env.db.CreateRoutine(&routine)
 	if err != nil {
 		panic(err)
 	}
 
-	// just for testing, remove this
 	newRoutine, err := env.db.FindRoutineById(routineId)
 	if err != nil {
 		panic(err)
@@ -251,18 +243,46 @@ func CreateRoutine(w http.ResponseWriter, r *http.Request) {
 }
 
 func ForkRoutine(w http.ResponseWriter, r *http.Request) {
-}
+	vars := mux.Vars(r)
+	userId, _ := strconv.Atoi(vars["userId"])
+	routineId, _ := strconv.Atoi(vars["routineId"])
 
-func EditRoutine(w http.ResponseWriter, r *http.Request) {
-	routineId, err := strconv.Atoi(mux.Vars(r)["routineId"])
+	routine, err := env.db.FindRoutineById(routineId)
+	if err != nil {
+		log.Printf("userid: %d, routineId: %d", userId, routineId)
+		panic(err)
+	}
+
+	// change creator_id
+	routine.CreatorId = userId
+
+	// increment popularity
+	routine.Popularity = routine.Popularity + 1
+
+	newId, err := env.db.CreateRoutine(routine)
 	if err != nil {
 		panic(err)
 	}
 
+	newRoutine, err := env.db.FindRoutineById(newId)
+	if err != nil {
+		panic(err)
+	}
+
+	w.Header().Set("Content-Type", JSON)
+	w.WriteHeader(http.StatusOK)
+	if err = json.NewEncoder(w).Encode(newRoutine); err != nil {
+		panic(err)
+	}
+}
+
+func EditRoutine(w http.ResponseWriter, r *http.Request) {
+	routineId, _ := strconv.Atoi(mux.Vars(r)["routineId"])
+
 	var routine models.Routine
 
 	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(&routine)
+	err := decoder.Decode(&routine)
 	if err != nil {
 		panic(err)
 	}
@@ -289,10 +309,7 @@ func DeleteRoutine(w http.ResponseWriter, r *http.Request) {
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
 
-	userId, err := strconv.Atoi(mux.Vars(r)["userId"])
-	if err != nil {
-		panic(err)
-	}
+	userId, _ := strconv.Atoi(mux.Vars(r)["userId"])
 
 	user := RepoFindUser(userId)
 
@@ -304,15 +321,12 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func EditUser(w http.ResponseWriter, r *http.Request) {
-	userId, err := strconv.Atoi(mux.Vars(r)["userId"])
-	if err != nil {
-		panic(err)
-	}
+	userId, _ := strconv.Atoi(mux.Vars(r)["userId"])
 
 	var user models.User
 
 	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(&user)
+	err := decoder.Decode(&user)
 	if err != nil {
 		panic(err)
 	}
