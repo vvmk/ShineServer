@@ -18,6 +18,10 @@ import (
 
 const JSON = "application/json; charset=UTF-8"
 
+type TokenResponse struct {
+	Token string `json:"access_token"`
+}
+
 func Login(w http.ResponseWriter, r *http.Request) {
 
 	// get the entered credentials
@@ -46,11 +50,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	t := struct {
-		Token string `json:"access_token"`
-	}{token}
-
-	json.NewEncoder(w).Encode(t)
+	json.NewEncoder(w).Encode(&TokenResponse{token})
 }
 
 type NewUserRequest struct {
@@ -63,6 +63,7 @@ type NewUserRequest struct {
 // TODO: this could use refactoring
 func Register(w http.ResponseWriter, r *http.Request) {
 	var nu NewUserRequest
+
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&nu)
 	if err != nil {
@@ -140,13 +141,16 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// User came from an email link and is confirming or resetting something
+type EmailData struct {
+	Uid   int
+	Token string
+}
+
 func ConfirmUser(w http.ResponseWriter, r *http.Request) {
 
 	// get params from post body
-	body := struct {
-		Uid   int
-		Token string
-	}{0, ""}
+	body := &EmailData{}
 
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&body)
@@ -170,13 +174,9 @@ func ConfirmUser(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	t := struct {
-		Token string `json:"access_token"`
-	}{jwt}
-
 	w.Header().Set("Content-Type", JSON)
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(t); err != nil {
+	if err := json.NewEncoder(w).Encode(&TokenResponse{jwt}); err != nil {
 		panic(err)
 	}
 }
