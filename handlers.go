@@ -305,6 +305,25 @@ func EditRoutine(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteRoutine(w http.ResponseWriter, r *http.Request) {
+	userId, _ := strconv.Atoi(mux.Vars(r)["userId"])
+	routineId, _ := strconv.Atoi(mux.Vars(r)["routineId"])
+
+	user := r.Context().Value("user")
+
+	claims := user.(*jwt.Token).Claims.(jwt.MapClaims)
+
+	// not an admin and not authorized user
+	if !claims["admin"] && userId != claims["uid"] {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	err := env.db.DeleteRoutine(routineId)
+	if err != nil {
+		panic(err)
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
@@ -349,4 +368,23 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
+
+	userId, _ := strconv.Atoi(mux.Vars(r)["userId"])
+
+	user := r.Context().Value("user")
+
+	claims := user.(*jwt.Token).Claims.(jwt.MapClaims)
+
+	// not an admin and not authorized user
+	if !claims["admin"] && userId != claims["uid"] {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	err := env.db.DeleteUser(userId)
+	if err != nil {
+		panic(err)
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
