@@ -19,6 +19,7 @@ const JSON = "application/json; charset=UTF-8"
 // TokenResponse is for returning a JWT to a validated user.
 type TokenResponse struct {
 	Token string `json:"access_token"`
+	User  *models.User
 }
 
 // NewUserRequest is exactly what it sounds like. See Register().
@@ -60,12 +61,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", JSON)
 
+	// TODO: send back the user data with the token
 	token, err := GetJWT(user.UserId)
 	if err != nil {
 		panic(err)
 	}
 
-	if err = json.NewEncoder(w).Encode(&TokenResponse{token}); err != nil {
+	if err = json.NewEncoder(w).Encode(&TokenResponse{token, user}); err != nil {
 		panic(err)
 	}
 }
@@ -176,6 +178,12 @@ func ConfirmUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user, err := env.db.FindUserById(userId)
+	if err != nil {
+		log.Panic("This should have failed sooner or not at all...")
+		panic(err)
+	}
+
 	// send back a jwt so user is auto logged in
 	jwt, err := GetJWT(userId)
 	if err != nil {
@@ -184,7 +192,7 @@ func ConfirmUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", JSON)
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(&TokenResponse{jwt}); err != nil {
+	if err := json.NewEncoder(w).Encode(&TokenResponse{jwt, user}); err != nil {
 		panic(err)
 	}
 }
