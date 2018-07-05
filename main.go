@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/vvmk/bounce/models"
+	"github.com/vvmk/shineserver/models"
 
 	"github.com/gorilla/handlers"
 )

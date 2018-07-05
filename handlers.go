@@ -10,8 +10,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/goware/emailx"
 	"github.com/sendgrid/rest"
-	"github.com/vvmk/bounce/mail"
-	"github.com/vvmk/bounce/models"
+	"github.com/vvmk/shineserver/mail"
+	"github.com/vvmk/shineserver/models"
 )
 
 const JSON = "application/json; charset=UTF-8"
@@ -65,7 +65,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	json.NewEncoder(w).Encode(&TokenResponse{token})
+	if err = json.NewEncoder(w).Encode(&TokenResponse{token}); err != nil {
+		panic(err)
+	}
 }
 
 // Register handles the creation of a new user. Right now it also handles
@@ -77,15 +79,13 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	var nu NewUserRequest
 
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&nu)
-	if err != nil {
+	if err := decoder.Decode(&nu); err != nil {
 		panic(err)
 	}
 
 	email := emailx.Normalize(nu.Email)
 
-	err = emailx.ValidateFast(email)
-	if err != nil {
+	if err := emailx.ValidateFast(email); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("invalid email"))
 		log.Printf("invalid email: %s", email)
@@ -118,8 +118,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	err = env.db.CreateActivation(id, token)
-	if err != nil {
+	if err = env.db.CreateActivation(id, token); err != nil {
 		panic(err)
 	}
 
@@ -162,8 +161,8 @@ func ConfirmUser(w http.ResponseWriter, r *http.Request) {
 	body := &EmailData{}
 
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&body)
-	if err != nil {
+	if err := decoder.Decode(&body); err != nil {
+		log.Println("ConfirmUser: malformed json data")
 		panic(err)
 	}
 
@@ -171,13 +170,13 @@ func ConfirmUser(w http.ResponseWriter, r *http.Request) {
 	userId := body.Uid
 
 	// try to validate/confirm user
-	err = env.db.ConfirmUser(userId, token)
-	if err != nil {
-		panic(err)
+	if err := env.db.ConfirmUser(userId, token); err != nil {
+		log.Println("ConfirmUser: User tried to authenticate from email but failed.")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
 	// send back a jwt so user is auto logged in
-	// TODO: cleanup dup
 	jwt, err := GetJWT(userId)
 	if err != nil {
 		panic(err)
@@ -237,8 +236,7 @@ func CreateRoutine(w http.ResponseWriter, r *http.Request) {
 	var routine models.Routine
 
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&routine)
-	if err != nil {
+	if err := decoder.Decode(&routine); err != nil {
 		panic(err)
 	}
 
@@ -316,13 +314,11 @@ func EditRoutine(w http.ResponseWriter, r *http.Request) {
 	var routine models.Routine
 
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&routine)
-	if err != nil {
+	if err := decoder.Decode(&routine); err != nil {
 		panic(err)
 	}
 
-	err = env.db.UpdateRoutine(routineId, &routine)
-	if err != nil {
+	if err := env.db.UpdateRoutine(routineId, &routine); err != nil {
 		panic(err)
 	}
 
@@ -349,8 +345,7 @@ func DeleteRoutine(w http.ResponseWriter, r *http.Request) {
 
 	routineId, _ := strconv.Atoi(mux.Vars(r)["routineId"])
 
-	err := env.db.DeleteRoutine(routineId)
-	if err != nil {
+	if err := env.db.DeleteRoutine(routineId); err != nil {
 		panic(err)
 	}
 
@@ -388,13 +383,11 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&user)
-	if err != nil {
+	if err := decoder.Decode(&user); err != nil {
 		panic(err)
 	}
 
-	err = env.db.UpdateUser(userId, &user)
-	if err != nil {
+	if err := env.db.UpdateUser(userId, &user); err != nil {
 		panic(err)
 	}
 
@@ -420,8 +413,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	userId, _ := strconv.Atoi(mux.Vars(r)["userId"])
 
-	err := env.db.DeleteUser(userId)
-	if err != nil {
+	if err := env.db.DeleteUser(userId); err != nil {
 		panic(err)
 	}
 
