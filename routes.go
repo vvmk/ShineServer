@@ -41,7 +41,7 @@ var routes = Routes{
 		"GET",
 		"/users/{userId}/library",
 		GetLibrary,
-		true,
+		false,
 	},
 	Route{
 		"GetRoutine",

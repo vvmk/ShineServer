@@ -6,13 +6,13 @@ import (
 )
 
 type User struct {
-	UserId    int
-	Email     string
-	Confirmed bool
-	Hash      string
-	Tag       string
-	Main      string
-	Bio       string
+	UserId    int    `json:"user_id"`
+	Email     string `json:"email"`
+	Confirmed bool   `json:"-"`
+	Hash      string `json:"-"`
+	Tag       string `json:"tag"`
+	Main      string `json:"main"`
+	Bio       string `json:"bio"`
 }
 
 type Activation struct {
