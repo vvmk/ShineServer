@@ -23,10 +23,8 @@ var ssr_jwt_key []byte
 
 func main() {
 
-	// jwt key
-	// var ssr_jwt string
-	// flag.StringVar(&ssr_jwt, "ssrjwt", "", "ssr jwt signing key")
-	// flag.Parse()
+	// set log flags
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	ssr_jwt_key = []byte(os.Getenv("SSRJWT"))
 

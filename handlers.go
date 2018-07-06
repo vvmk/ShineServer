@@ -18,8 +18,8 @@ const JSON = "application/json; charset=UTF-8"
 
 // TokenResponse is for returning a JWT to a validated user.
 type TokenResponse struct {
-	Token string `json:"access_token"`
-	User  *models.User
+	Token string       `json:"access_token"`
+	User  *models.User `json:"user"`
 }
 
 // NewUserRequest is exactly what it sounds like. See Register().
@@ -49,12 +49,14 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	// lookup user by email
 	user, err := env.db.FindUserByEmail(email)
 	if err != nil {
+		log.Println(err)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
 	// check against stored password
 	if !CheckPasswordHash(password, user.Hash) {
+		log.Println(err)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -89,7 +91,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	if err := emailx.ValidateFast(email); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid email"))
 		log.Printf("invalid email: %s", email)
 		return
 	}

@@ -26,9 +26,9 @@ type Activation struct {
 func (db *DB) FindUserById(userId int) (*User, error) {
 	var u User
 
-	query := "SELECT * FROM users WHERE user_id=?;"
+	query := "SELECT * FROM users WHERE user_id=$1;"
 
-	err := db.QueryRow(query, userId).Scan(&u.UserId, &u.Email, &u.Confirmed, &u.Hash, &u.Tag, &u.Main, &u.Bio)
+	err := db.QueryRow(query, userId).Scan(&u.UserId, &u.Email, &u.Tag, &u.Main, &u.Bio, &u.Confirmed, &u.Hash)
 	if err != nil {
 		return nil, err
 	}
@@ -39,9 +39,9 @@ func (db *DB) FindUserById(userId int) (*User, error) {
 func (db *DB) FindUserByEmail(email string) (*User, error) {
 	var u User
 
-	query := "SELECT * FROM users WHERE email=?;"
+	query := "SELECT * FROM users WHERE email=$1;"
 
-	err := db.QueryRow(query, email).Scan(&u.UserId, &u.Email, &u.Confirmed, &u.Hash, &u.Tag, &u.Main, &u.Bio)
+	err := db.QueryRow(query, email).Scan(&u.UserId, &u.Email, &u.Tag, &u.Main, &u.Bio, &u.Confirmed, &u.Hash)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (db *DB) CreateUser(u *User) (int, error) {
 	var userId int
 
 	query := `INSERT INTO users(email, confirmed, hash, tag, main, bio)
-		VALUES($1, $2, $3, $4, $5, $6)
+		VALUES('$1', '$2', '$3', '$4', '$5', '$6')
 		RETURNING user_id;`
 
 	err := db.QueryRow(query, u.Email, false, u.Hash, u.Tag, u.Main, u.Bio).Scan(&userId)
@@ -67,7 +67,7 @@ func (db *DB) CreateUser(u *User) (int, error) {
 func (db *DB) UpdateUser(userId int, u *User) error {
 
 	query := `UPDATE users
-		SET tag = $2, main = $3, bio = $4
+		SET tag = '$2', main = '$3', bio = '$4'
 		WHERE user_id = $1;`
 
 	_, err := db.Exec(query, userId, u.Tag, u.Main, u.Bio)
@@ -89,7 +89,7 @@ func (db *DB) CreateActivation(userId int, token string) error {
 	}
 
 	query := `INSERT INTO activations(user_id, code, issued, expired)
-	VALUES($1, $2, $3, $4);`
+	VALUES('$1', '$2', '$3', '$4');`
 
 	_, err := db.Exec(query, a.UserId, a.Token, a.Issued, a.Expires)
 	if err != nil {
@@ -122,7 +122,7 @@ func (db *DB) ConfirmUser(userId int, token string) error {
 	}
 
 	// just delete the row. that'll invalidate'em
-	_, err = db.Exec("DELETE FROM activations WHERE activation_id=$1;", a.ActivationId)
+	_, err = db.Exec("DELETE FROM activations WHERE activation_id = $1;", a.ActivationId)
 	if err != nil {
 		return err
 	}
@@ -142,7 +142,7 @@ func (db *DB) DeleteUser(userId int) error {
 }
 
 func (db *DB) GetAllUsers() ([]*User, error) {
-	query := `SELECT * FROM users`
+	query := `SELECT * FROM users;`
 
 	rows, err := db.Query(query)
 	if err != nil {
