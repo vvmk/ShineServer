@@ -14,6 +14,7 @@ import (
 type MessageData struct {
 	Address string
 	Tag     string
+	UserId  int
 	Token   string
 }
 
@@ -22,7 +23,7 @@ func SendConfirmation(data *MessageData) (*rest.Response, error) {
 	from := mail.NewEmail("vvmk", "vv@shfflshinerepeat.com")
 	subject := "Welcome to the party!"
 	to := mail.NewEmail(data.Tag, data.Address)
-	confirm := fmt.Sprintf("https://shfflshinerepeat.com/confirm?token=%s", data.Token)
+	confirm := fmt.Sprintf("https://shfflshinerepeat.com/confirm?uid=%d&token=%s", data.UserId, data.Token)
 
 	message := new(mail.SGMailV3)
 	message.SetTemplateID(os.Getenv("SENDGRID_TEMPLATE_CONFIRMATION"))

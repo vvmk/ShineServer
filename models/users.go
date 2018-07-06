@@ -53,7 +53,7 @@ func (db *DB) CreateUser(u *User) (int, error) {
 	var userId int
 
 	query := `INSERT INTO users(email, confirmed, hash, tag, main, bio)
-		VALUES('$1', '$2', '$3', '$4', '$5', '$6')
+		VALUES($1, $2, $3, $4, $5, $6)
 		RETURNING user_id;`
 
 	err := db.QueryRow(query, u.Email, false, u.Hash, u.Tag, u.Main, u.Bio).Scan(&userId)
@@ -67,7 +67,7 @@ func (db *DB) CreateUser(u *User) (int, error) {
 func (db *DB) UpdateUser(userId int, u *User) error {
 
 	query := `UPDATE users
-		SET tag = '$2', main = '$3', bio = '$4'
+		SET tag = $2, main = $3, bio = $4
 		WHERE user_id = $1;`
 
 	_, err := db.Exec(query, userId, u.Tag, u.Main, u.Bio)
@@ -89,7 +89,7 @@ func (db *DB) CreateActivation(userId int, token string) error {
 	}
 
 	query := `INSERT INTO activations(user_id, code, issued, expired)
-	VALUES('$1', '$2', '$3', '$4');`
+	VALUES($1, $2, $3, $4);`
 
 	_, err := db.Exec(query, a.UserId, a.Token, a.Issued, a.Expires)
 	if err != nil {

@@ -129,6 +129,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	messageData := &mail.MessageData{
 		Address: user.Email,
 		Tag:     user.Tag,
+		UserId:  id,
 		Token:   token,
 	}
 
