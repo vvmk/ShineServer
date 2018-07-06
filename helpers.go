@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -9,9 +10,12 @@ import (
 )
 
 func UserAuthorized(r *http.Request) bool {
-	userId, _ := strconv.Atoi(mux.Vars(r)["userId"])
+	userId, err := strconv.ParseFloat(mux.Vars(r)["userId"], 64)
+	if err != nil {
+		log.Println(err)
+	}
 	tokenData := r.Context().Value("user")
 	claims := tokenData.(*jwt.Token).Claims.(jwt.MapClaims)
 
-	return (claims["admin"].(bool) || userId == claims["uid"].(int))
+	return (claims["admin"].(bool) || userId == claims["uid"].(float64))
 }

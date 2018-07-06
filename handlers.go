@@ -247,22 +247,26 @@ func CreateRoutine(w http.ResponseWriter, r *http.Request) {
 
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&routine); err != nil {
+		log.Println("failed to decode new routine")
 		panic(err)
 	}
 
 	routineId, err := env.db.CreateRoutine(&routine)
 	if err != nil {
+		log.Println("db failed to create new routine")
 		panic(err)
 	}
 
 	newRoutine, err := env.db.FindRoutineById(routineId)
 	if err != nil {
+		log.Println("Created new routine but failed to find in db...")
 		panic(err)
 	}
 
 	w.Header().Set("Content-Type", JSON)
 	w.WriteHeader(http.StatusOK)
 	if err = json.NewEncoder(w).Encode(newRoutine); err != nil {
+		log.Println("failed to encode json to response")
 		panic(err)
 	}
 }
