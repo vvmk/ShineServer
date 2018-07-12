@@ -28,7 +28,7 @@ func (db *DB) FindUserById(userId int) (*User, error) {
 
 	query := "SELECT * FROM users WHERE user_id=$1;"
 
-	err := db.QueryRow(query, userId).Scan(&u.UserId, &u.Email, &u.Tag, &u.Main, &u.Bio, &u.Confirmed, &u.Hash)
+	err := db.QueryRow(query, userId).Scan(&u.UserId, &u.Email, &u.Tag, &u.Bio, &u.Main, &u.Confirmed, &u.Hash)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (db *DB) FindUserByEmail(email string) (*User, error) {
 
 	query := "SELECT * FROM users WHERE email=$1;"
 
-	err := db.QueryRow(query, email).Scan(&u.UserId, &u.Email, &u.Tag, &u.Main, &u.Bio, &u.Confirmed, &u.Hash)
+	err := db.QueryRow(query, email).Scan(&u.UserId, &u.Email, &u.Tag, &u.Bio, &u.Main, &u.Confirmed, &u.Hash)
 	if err != nil {
 		return nil, err
 	}
