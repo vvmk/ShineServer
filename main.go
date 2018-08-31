@@ -11,7 +11,7 @@ import (
 	"github.com/gorilla/handlers"
 )
 
-const port = ":8080"
+const port = ":8001"
 
 type Env struct {
 	db models.Datastore
@@ -32,8 +32,9 @@ func main() {
 	dbU := os.Getenv("POSTGRES_USER")
 	dbP := os.Getenv("POSTGRES_PASSWORD")
 	dbD := os.Getenv("POSTGRES_DB")
+	dbH := os.Getenv("POSTGRES_HOST")
 
-	connStr := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", dbU, dbP, dbD)
+	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s sslmode=disable", dbU, dbP, dbD, dbH)
 	db, err := models.NewDB(connStr)
 	if err != nil {
 		panic(err)
