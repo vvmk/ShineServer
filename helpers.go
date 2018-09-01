@@ -7,6 +7,7 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
+	"github.com/vvmk/shineserver/models"
 )
 
 func UserAuthorized(r *http.Request) bool {
@@ -18,4 +19,18 @@ func UserAuthorized(r *http.Request) bool {
 	claims := tokenData.(*jwt.Token).Claims.(jwt.MapClaims)
 
 	return (claims["admin"].(bool) || userId == claims["uid"].(float64))
+}
+
+func MakeRoutineHeaders(rs []*models.Routine) []RoutineHeader {
+	rsm := make([]RoutineHeader, len(rs))
+	for i, r := range rs {
+		rsm[i] = RoutineHeader{
+			r.RoutineId,
+			r.Title,
+			r.TotalDuration,
+			r.Popularity,
+			r.Description,
+		}
+	}
+	return rsm
 }

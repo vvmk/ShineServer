@@ -15,6 +15,7 @@ type Routine struct {
 	Created           time.Time `json:"created"`
 	Popularity        int       `json:"popularity"`
 	Drills            []Drill   `json:"drills"`
+	Description       string    `json:"description"`
 }
 
 type Drill struct {
@@ -28,7 +29,7 @@ func (db *DB) FindRoutineById(routineId int) (*Routine, error) {
 	query := `SELECT * FROM routines WHERE routine_id=$1;`
 
 	var d []byte
-	err := db.QueryRow(query, routineId).Scan(&r.RoutineId, &r.Title, &r.TotalDuration, &r.Character, &r.CreatorId, &r.Created, &r.Popularity, &d, &r.OriginalCreatorId)
+	err := db.QueryRow(query, routineId).Scan(&r.RoutineId, &r.Title, &r.TotalDuration, &r.Character, &r.CreatorId, &r.Created, &r.Popularity, &d, &r.OriginalCreatorId, &r.Description)
 
 	if err != nil {
 		return nil, err
@@ -57,7 +58,7 @@ func (db *DB) FindRoutinesByCreator(creatorId int) ([]*Routine, error) {
 		r := &Routine{}
 
 		var d []byte
-		err := rows.Scan(&r.RoutineId, &r.Title, &r.TotalDuration, &r.Character, &r.CreatorId, &r.Created, &r.Popularity, &d, &r.OriginalCreatorId)
+		err := rows.Scan(&r.RoutineId, &r.Title, &r.TotalDuration, &r.Character, &r.CreatorId, &r.Created, &r.Popularity, &d, &r.OriginalCreatorId, &r.Description)
 		if err != nil {
 			return nil, err
 		}
@@ -77,8 +78,8 @@ func (db *DB) FindRoutinesByCreator(creatorId int) ([]*Routine, error) {
 
 func (db *DB) CreateRoutine(r *Routine) (int, error) {
 
-	query := `INSERT INTO routines(title, total_duration, character, original_creator_id, creator_id, drills, popularity)
-	VALUES($1, $2, $3, $4, $5, $6, $7)
+	query := `INSERT INTO routines(title, total_duration, character, original_creator_id, creator_id, drills, popularity, description)
+	VALUES($1, $2, $3, $4, $5, $6, $7, $8)
 	RETURNING routine_id;`
 
 	var routineId int
@@ -88,7 +89,7 @@ func (db *DB) CreateRoutine(r *Routine) (int, error) {
 		return -1, err
 	}
 
-	err = db.QueryRow(query, r.Title, r.TotalDuration, r.Character, r.OriginalCreatorId, r.CreatorId, drills, r.Popularity).Scan(&routineId)
+	err = db.QueryRow(query, r.Title, r.TotalDuration, r.Character, r.OriginalCreatorId, r.CreatorId, drills, r.Popularity, r.Description).Scan(&routineId)
 	if err != nil {
 		return -1, err
 	}
@@ -99,7 +100,7 @@ func (db *DB) CreateRoutine(r *Routine) (int, error) {
 func (db *DB) UpdateRoutine(routineId int, r *Routine) error {
 
 	query := `UPDATE routines
-	SET title = $2, total_duration = $3, character = $4, popularity = $5, drills = $6
+	SET title = $2, total_duration = $3, character = $4, popularity = $5, drills = $6, description = $7
 	WHERE routine_id = $1;`
 
 	drills, err := json.Marshal(r.Drills)
@@ -107,7 +108,7 @@ func (db *DB) UpdateRoutine(routineId int, r *Routine) error {
 		return err
 	}
 
-	_, err = db.Exec(query, routineId, r.Title, r.TotalDuration, r.Character, r.Popularity, drills)
+	_, err = db.Exec(query, routineId, r.Title, r.TotalDuration, r.Character, r.Popularity, drills, r.Description)
 	if err != nil {
 		return err
 	}
@@ -140,7 +141,7 @@ func (db *DB) GetAllRoutines() ([]*Routine, error) {
 	for rows.Next() {
 		r := &Routine{}
 
-		err := rows.Scan(&r.RoutineId, &r.Title, &r.TotalDuration, &r.Character, &r.OriginalCreatorId, &r.CreatorId, &r.Created, &r.Popularity, &r.Drills)
+		err := rows.Scan(&r.RoutineId, &r.Title, &r.TotalDuration, &r.Character, &r.OriginalCreatorId, &r.CreatorId, &r.Created, &r.Popularity, &r.Drills, &r.Description)
 		if err != nil {
 			return nil, err
 		}

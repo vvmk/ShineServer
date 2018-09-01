@@ -36,6 +36,19 @@ type EmailData struct {
 	Token string
 }
 
+type RoutineHeader struct {
+	RoutineId     int    `json:"routine_id"`
+	Title         string `json:"title"`
+	TotalDuration int    `json:"total_duration"`
+	Popularity    int    `json:"popularity"`
+	Description   string `json:"description"`
+}
+
+type Profile struct {
+	User     *models.User `json:"user"`
+	Routines []RoutineHeader
+}
+
 // Login verifies the user's input credentials and checks them against
 // the stored data, returning an access token, 404, or 401
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -432,4 +445,34 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func GetProfile(w http.ResponseWriter, r *http.Request) {
+
+	userId, _ := strconv.Atoi(mux.Vars(r)["userId"])
+
+	user, err := env.db.FindUserById(userId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	routines, err := env.db.FindRoutinesByCreator(userId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	routineHeaders := MakeRoutineHeaders(routines)
+
+	profile := &Profile{
+		user,
+		routineHeaders,
+	}
+
+	w.Header().Set("Content-Type", JSON)
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(profile); err != nil {
+		panic(err)
+	}
 }

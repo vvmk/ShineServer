@@ -99,4 +99,11 @@ var routes = Routes{
 		DeleteUser,
 		true,
 	},
+	Route{
+		"GetProfile",
+		"GET",
+		"/users/{userId}/profile",
+		GetProfile,
+		false,
+	},
 }
