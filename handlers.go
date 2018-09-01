@@ -453,12 +453,14 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 
 	user, err := env.db.FindUserById(userId)
 	if err != nil {
+		log.Println(err)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
 	routines, err := env.db.FindRoutinesByCreator(userId)
 	if err != nil {
+		log.Println(err)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
