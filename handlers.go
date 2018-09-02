@@ -46,8 +46,8 @@ type RoutineHeader struct {
 }
 
 type Profile struct {
-	User     *models.User `json:"user"`
-	Routines []RoutineHeader
+	User     *models.User    `json:"user"`
+	Routines []RoutineHeader `json:"routine_headers"`
 }
 
 // Login verifies the user's input credentials and checks them against
