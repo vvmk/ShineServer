@@ -40,6 +40,7 @@ type RoutineHeader struct {
 	RoutineId     int    `json:"routine_id"`
 	Title         string `json:"title"`
 	TotalDuration int    `json:"total_duration"`
+	Character     string `json:"character"`
 	Popularity    int    `json:"popularity"`
 	Description   string `json:"description"`
 }

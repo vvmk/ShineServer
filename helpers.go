@@ -21,6 +21,8 @@ func UserAuthorized(r *http.Request) bool {
 	return (claims["admin"].(bool) || userId == claims["uid"].(float64))
 }
 
+// MakeRoutineHeaders scrubs a slice of Routines into a slice of RoutineHeaders
+// RoutineHeaders consist only of data needed by a user's library page.
 func MakeRoutineHeaders(rs []*models.Routine) []RoutineHeader {
 	rsm := make([]RoutineHeader, len(rs))
 	for i, r := range rs {
@@ -28,6 +30,7 @@ func MakeRoutineHeaders(rs []*models.Routine) []RoutineHeader {
 			r.RoutineId,
 			r.Title,
 			r.TotalDuration,
+			r.Character,
 			r.Popularity,
 			r.Description,
 		}
